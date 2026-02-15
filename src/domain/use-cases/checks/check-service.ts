@@ -6,7 +6,7 @@ interface CheckServiceUseCase {
 }
 
 type SuccessCallback = (() => void) | undefined;
-type ErrorCallback = (( error: string ) => void) | undefined;
+type ErrorCallback = ((error: string) => void) | undefined;
 
 export class CheckService implements CheckServiceUseCase {
 
@@ -14,28 +14,36 @@ export class CheckService implements CheckServiceUseCase {
         private readonly logRepository: LogRepository,
         private readonly successCallback: SuccessCallback,
         private readonly errorCallback: ErrorCallback
-    ){}
+    ) { }
 
     public async execute(url: string): Promise<boolean> {
 
-        try{
-            const req = await fetch( url );
+        try {
+            const req = await fetch(url);
             if (!req.ok) {
-                throw new Error(`Error on check service ${ url }`);
+                throw new Error(`Error on check service ${url}`);
             }
 
-            const log = new LogEntity( `Service ${ url } working`, LogSeverityLevel.low);
-            this.logRepository.saveLog( log );
+            const log = new LogEntity({
+                message: `Service ${url} working`,
+                level: LogSeverityLevel.low,
+                origin: 'check-service.ts'
+            });
+            this.logRepository.saveLog(log);
             this.successCallback && this.successCallback();
             //console.log(`${url} is ok` )
             return true;
 
         } catch (error) {
-            const errorMessage = `${ url } is not ok. ${ error }`;
-            const log = new LogEntity( errorMessage, LogSeverityLevel.high);
-            this.logRepository.saveLog( log );
+            const errorMessage = `${url} is not ok. ${error}`;
+            const log = new LogEntity({
+                message: errorMessage,
+                level: LogSeverityLevel.high,
+                origin: 'heck-service.ts'
+            });
+            this.logRepository.saveLog(log);
 
-            this.errorCallback && this.errorCallback( `${error}` );
+            this.errorCallback && this.errorCallback(`${error}`);
             return false;
         }
     }
